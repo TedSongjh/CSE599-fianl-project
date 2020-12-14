@@ -1,6 +1,7 @@
 # CSE599-fianl-project
 
 ## Introduction
+This project is aiming for provide ground truth for futher CRUW dataset made by Information Processing Lab @UWECE. The CRUW dataset is a autonomous driving senerio dataset with dual-camera and dual radar sensor setup. Which aming for sensor fusion reseach and object detection by radar. My  
 
 ## Related Work
 
