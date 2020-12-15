@@ -1,13 +1,27 @@
 # CSE599-fianl-project
 
 ## Introduction
-This project is aiming for provide ground truth for futher CRUW dataset made by Information Processing Lab @UWECE. The CRUW dataset is a autonomous driving senerio dataset with dual-camera and dual radar sensor setup. Which aming for sensor fusion reseach and object detection by radar. And also this dataset will be publish soon and a challenge for radar-camera sensor fusion will be held. My works is to preprocess both the radar and image and then provide image base object detection groud truth result as benchmark for radar process algorism. The object detection base on Detectron is the main part for this final project. I use a new dataset called nuImages instead of KITTI
+This project is aiming for provide ground truth for further [CRUW dataset](https://www.cruwdataset.org/introduction) made by Information Processing Lab @UWECE. The CRUW dataset is a autonomous driving senerio dataset with dual-camera and dual radar sensor setup. Which aming for sensor fusion reseach and object detection by radar. And also this dataset will be publish soon and a challenge for radar-camera sensor fusion will be held. My works is to preprocess both the radar and image and then provide image base object detection groud truth result as benchmark for radar process algorism. The object detection base on Detectron is the main part for this final project. I use a new dataset called [nuImages](https://www.nuscenes.org/nuimages) to pretrain my benchmark model instead of KITTI because the seniero and quaility are similar to the CRUW we collected. And also, the metadata and annotation is extract from [nuScenes](https://www.nuscenes.org/nuscenes) dataset, which have more information in the relational database.
 
 ## Related Work
+#Detectron2
+[Detectron2](https://github.com/facebookresearch/detectron2) is Facebook AI Research's next generation software system that implements state-of-the-art object detection algorithms. It is a ground-up rewrite of the previous version, Detectron, and it originates from maskrcnn-benchmark.
+
+#nuScenes devkit
+[nuScenes devkit](https://github.com/nutonomy/nuscenes-devkit) is develop
+To use this devkit:
+```
+pip install nuscenes-devkit
+```
 
 Other people are out there doing things. What did they do? Was it good? Was it bad? Talk about it here.
 
 ## Approach
+#CRUW dataset annotation format
+My first attribute to this project is to develope a annotation reader and writer for our own dataset annotation format. This part of project is done in this summer 2020. The development kit is in this repositories [CRUW devkit](https://github.com/yizhou-wang/cruw-devkit). 
+#Convert nuImages dataset to CRUW dataset format
+The nuImages dataset have more attributes than our dataset, and also the nuImages's categories is in detail, which is meaning less for our Camera-Radar Fusion (CRF) annotation(The information extracted from radar can only provide accuracy location and velocity information, the feature of objects are compressed).
+
 
 How did you decide to solve the problem? What network architecture did you use? What data? Lots of details here about all the things you did. This section describes almost your whole project.
 
