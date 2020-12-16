@@ -227,7 +227,7 @@ Because the CRUW dataset has not been published yet. I can only show some repres
 For more result please check [here](https://github.com/TedSongjh/CSE599-fianl-project/tree/main/pix)
 * Successfull Result
 ![CRUW_1](/pix/0000000004.jpg)In this complex trafic scence, all the instances are identified, even part of the pedestrain is block by the car in front, the bounding box is still accuracy.![CRUW_2](/pix/0000000063.jpg)This night scence result can show that this model successfully detect objects in low light and high image noise samples. ![CRUW_3](/pix/0000001264.jpg)
-This is a result from highway scence, which will be disscuss in the compare with the following failure result.
+This is a result from highway scence, which will be disscuss in the comparision with the following failure result.
 
 * Partially Failure Result
 ![CRUW_3](/pix/0000001048.jpg)
