@@ -217,30 +217,16 @@ I firstly use nuImages-mini dataset to evaluate the model. And then run full inf
 **nuImage Inference Result**
 For full nuImages inference result in txt dict and images, please check [here](https://github.com/TedSongjh/CSE599-fianl-project/tree/main/nuimage_mini_result).
 * Successfull Result
-![nuimage_mini_1](/nuimage_mini_result/vis/CAM_FRONT/nuimage_coco/n008-2018-05-21-11-06-59-0400__CAM_FRONT__1526915374762465.jpg)
-In this result, the trucks and trailer with low contrast and low saturation are successfully seprated from the building with similar geo features.
-
-![nuimage_mini_2](/nuimage_mini_result/vis/CAM_FRONT/nuimage_coco/n009-2018-09-12-09-59-51-0400__CAM_FRONT__1536761961012656.jpg)
-In this result, all the cars and pedestrian is identified in this complex city scenes.
+![nuimage_mini_1](/nuimage_mini_result/vis/CAM_FRONT/nuimage_coco/n008-2018-05-21-11-06-59-0400__CAM_FRONT__1526915374762465.jpg)In this result, the trucks and trailer with low contrast and low saturation are successfully seprated from the building with similar geo features.![nuimage_mini_2](/nuimage_mini_result/vis/CAM_FRONT/nuimage_coco/n009-2018-09-12-09-59-51-0400__CAM_FRONT__1536761961012656.jpg)In this result, all the cars and pedestrian is identified in this complex city scenes.
 
 * Partially Failure Result
-![nuimage_mini_3](/nuimage_mini_result/vis/CAM_FRONT_LEFT/nuimage_coco/n013-2018-09-04-13-30-50+0800__CAM_FRONT_LEFT__1536039168104825.jpg)
-All the motorcycle are failed to detection, also the pedestrian segmantation is not accuracy.
-
-![nuimage_mini_4](/nuimage_mini_result/vis/CAM_BACK/nuimage_coco/n003-2018-01-08-11-30-34+0800__CAM_BACK__1515382745757583.jpg)
-Although all the cars and truck are identified, the pink bounding box and segmantation mask is overlapped for the ISUZU truck, can the score of vehicle.car is even higher. Also, the pedestrian in the right is detected as 2 instances for barly the same bounding box and segmantation. I will implement a function to merge instances result when IoU arrive at certain thread hold.
+![nuimage_mini_3](/nuimage_mini_result/vis/CAM_FRONT_LEFT/nuimage_coco/n013-2018-09-04-13-30-50+0800__CAM_FRONT_LEFT__1536039168104825.jpg)All the motorcycle are failed to detection, also the pedestrian segmantation is not accuracy.![nuimage_mini_4](/nuimage_mini_result/vis/CAM_BACK/nuimage_coco/n003-2018-01-08-11-30-34+0800__CAM_BACK__1515382745757583.jpg)Although all the cars and truck are identified, the pink bounding box and segmantation mask is overlapped for the ISUZU truck, can the score of vehicle.car is even higher. Also, the pedestrian in the right is detected as 2 instances for barly the same bounding box and segmantation. I will implement a function to merge instances result when IoU arrive at certain thread hold.
 
 **CRUW Inference Result**
 Because the CRUW dataset has not been published yet. I can only show some representative result.
 For more result please check [here](https://github.com/TedSongjh/CSE599-fianl-project/tree/main/pix)
 * Successfull Result
-![CRUW_1](/pix/0000000004.jpg)
-In this complex trafic scence, all the instances are identified, even part of the pedestrain is block by the car in front, the bounding box is still accuracy.
-![CRUW_2](/pix/0000000063.jpg)
-This night scence result can show that this model successfully detect objects in low light and high image noise samples. 
-
-
-![CRUW_3](/pix/0000001264.jpg)
+![CRUW_1](/pix/0000000004.jpg)In this complex trafic scence, all the instances are identified, even part of the pedestrain is block by the car in front, the bounding box is still accuracy.![CRUW_2](/pix/0000000063.jpg)This night scence result can show that this model successfully detect objects in low light and high image noise samples. ![CRUW_3](/pix/0000001264.jpg)
 This is a result from highway scence, which will be disscuss in the compare with the following failure result.
 
 * Partially Failure Result
