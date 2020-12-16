@@ -4,7 +4,6 @@
 This project is aiming for provide ground truth for [CRUW dataset](https://www.cruwdataset.org/introduction) built by Information Processing Lab @UWECE. The CRUW dataset is a autonomous driving senerio dataset with dual-camera and dual radar sensor setup. Which aming for sensor fusion reseach and object detection by radar. And also this dataset will be publish soon and a challenge for radar-camera sensor fusion will be held. My works is to preprocess both the radar and image and then provide image base object detection groud truth result as benchmark for radar process algorism. The object detection base on Detectron is the main part for this final project. I use a new dataset called [nuImages](https://www.nuscenes.org/nuimages) to pretrain my benchmark model.
 
 
-
 ## Related Work
 
 [Detectron2](https://github.com/facebookresearch/detectron2) 
@@ -30,12 +29,12 @@ pip install nuscenes-devkit
 
 [CRUW dataset](https://www.cruwdataset.org/introduction)
 
-CRUW is a public camera-radar dataset for autonomous vehicle applications. It is a good resource for researchers to study FMCW radar data, that has high potential in the future autonomous driving. We will publish this dataset soon.Our dataset contains a pair of stereo cameras and 2 77GHz FMCW radar antenna array, both the camera and radar are calibrated and sychronized. During the last summer, I made the preprocess of this dataset, time-syschronize the camera and radar,and transfer the FMCW radar data to Range-Angle-Doppler(RAD) format
+CRUW is a camera-radar dataset for autonomous vehicle applications collected eariler this year by IPL@UWECE, we collect these data from E18 parking lot, road in side UW, city scenes and I-5 highway. It is a good resource for researchers to study FMCW radar data, that has high potential in the future autonomous driving. We will publish this dataset soon.Our dataset contains a pair of stereo cameras and 2 77GHz FMCW radar antenna array, both the camera and radar are calibrated and sychronized. During the last summer, I made the preprocess of this dataset, time-syschronize the camera and radar,and transfer the FMCW radar data to Range-Angle-Doppler(RAD) format
 
 
 
 ## Approach
-1. CRUW dataset annotation format
+**1. CRUW dataset annotation format**
 
   My first attribute to this project is to develope a annotation tool kit for our own dataset annotation format. The annotation writer and loader parts of project is done in this summer 2020. The development kit is in this repositories [CRUW devkit](https://github.com/yizhou-wang/cruw-devkit). Also, I made a annotation visualization tool for the inference. This part of the work is in [anno.py](https://github.com/yizhou-wang/cruw-devkit/blob/461d91b695b44bc8d6139942c60d584947e40886/scripts/anno.py) and [anno_loader.py](https://github.com/yizhou-wang/cruw-devkit/blob/master/scripts/anno_loader.py) in cruw devkit.
   The following picture shows result of the anno_loader tool. This tool can read the config file for different dataset configuration and show both detection result in image and radar domain.
@@ -102,7 +101,7 @@ The annotations provided by CRUW dataset include the following:
   ]
 }
 ```
-2. Convert nuImages dataset to CRUW dataset format
+**2. Convert nuImages dataset to CRUW dataset format**
 
 The nuImages dataset have more attributes than our dataset, and also the nuImages's categories is in detail, which is meaning less for our Camera-Radar Fusion (CRF) annotation(The information extracted from radar can only provide accuracy location and velocity information, the feature of objects are compressed).This part of the code can be access from [nuimages.py](https://github.com/TedSongjh/CSE599-fianl-project/blob/main/nuimages.py).
 
@@ -141,8 +140,8 @@ vehicle.truck	|	vehicle.truck
 flat.drivable_surface	|	-
 flat.ego	|	-
 
-**Use Custom datasets on Detectron2**
-After made the dataset reader, I register the nuimages_test and nuimages_train dataset and metadata in [builtin.py](https://github.com/TedSongjh/CSE599-fianl-project/blob/main/builtin.py). Because the nuImages don't have built in evaluator. I choose to use COCO InstanceSegmentation evaluator in the following part, so I load these two dataset by COCO format. And the instances detail information is in the chart below.
+**3. Use Custom datasets on Detectron2**
+After made the dataset reader, I register the nuimages_test and nuimages_train dataset and metadata in [builtin.py](https://github.com/TedSongjh/CSE599-fianl-project/blob/main/builtin.py). Because the nuImages don't have built in evaluator. I choose to use COCO InstanceSegmentation evaluator in the following part, so I load these two dataset by COCO format. So I have to convert the CRUW dataset format to COCO format, by changing object information schema, segmantation map to bitmask and bounding box format. Also, because CRUW dataset sensor setup only have dual camera facing front, I filter out all the samples facing other direction in nuImages. This part is also in [nuimages.py](https://github.com/TedSongjh/CSE599-fianl-project/blob/main/nuimages.py).The instances detail information is in the chart below.
 
 |   category    | #instances   |   category    | #instances   |   category    | #instances   |
 |:-------------:|:-------------|:-------------:|:-------------|:-------------:|:-------------|
@@ -151,14 +150,13 @@ After made the dataset reader, I register the nuimages_test and nuimages_train d
 |               |              |               |              |               |              |
 |     total     | 8907         |               |              |               |              |
 
-**Train nuImages use Mask R-CNN**
+**4.Train nuImages use Mask R-CNN**
 
 ```
 ./detectron2/tools/train_net.py   --config-file ../configs/NuImages-RCNN-FPN.yaml   --num-gpus 1 SOLVER.IMS_PER_BATCH 2 SOLVER.BASE_LR 0.0025
 ```
 
-To train the dataset on Detectron2 I modify the base mask-RCNN architeture, which use ResNet FPN backbone.
-
+To train the dataset on Detectron2 I modify the base mask-RCNN architeture config, which use ResNet FPN backbone. 
 
 The detail of this archetecuture can be found in [NuImages-RCNN-FPN.yaml](https://github.com/TedSongjh/CSE599-fianl-project/blob/main/configs/NuImages-RCNN-FPN.yaml)
 ```
@@ -208,13 +206,49 @@ INPUT:
 VERSION: 2
 ```
 
-**Use CRUW to make inference**
+**5.Use nuImgaes and CRUW to make inference**
 
 The inference part of this project can be found in [nuimages_inference.py](https://github.com/TedSongjh/CSE599-fianl-project/blob/main/nuimages_inference.py)
-![anno_loader](/pix/IMG_2052.PNG)
+I use my final model to make inference to both dataset, and visualize the result. The transform_instance_to_dict function read the instance in each sample, because in the first version, I didn't modify the nuImages, so this function will filter out all the instance to be ignored and reture the dictionary and new instance. In the meanwhile, the write_det_txt function will write the result to a single annotation file for each sample sequence.
+
+## Qualitative Results
+I firstly use nuImages-mini dataset to evaluate the model. And then run full inference on CRUW dataset. Here I can show both success case and failure case in complex senerio for both dataset. The results are as follow:
+
+**nuImage Inference Result**
+For full nuImages inference result in txt dict and images, please check [here](https://github.com/TedSongjh/CSE599-fianl-project/tree/main/nuimage_mini_result).
+* Successfull Result
+![nuimage_mini_1](/nuimage_mini_result/vis/CAM_FRONT/nuimage_coco/n008-2018-05-21-11-06-59-0400__CAM_FRONT__1526915374762465.jpg)
+In this result, the trucks and trailer with low contrast and low saturation are successfully seprated from the building with similar geo features.
+
+![nuimage_mini_2](/nuimage_mini_result/vis/CAM_FRONT/nuimage_coco/n009-2018-09-12-09-59-51-0400__CAM_FRONT__1536761961012656.jpg)
+In this result, all the cars and pedestrian is identified in this complex city scenes.
+
+* Partially Failure Result
+![nuimage_mini_3](/nuimage_mini_result/vis/CAM_FRONT_LEFT/nuimage_coco/n013-2018-09-04-13-30-50+0800__CAM_FRONT_LEFT__1536039168104825.jpg)
+All the motorcycle are failed to detection, also the pedestrian segmantation is not accuracy.
+
+![nuimage_mini_4](/nuimage_mini_result/vis/CAM_BACK/nuimage_coco/n003-2018-01-08-11-30-34+0800__CAM_BACK__1515382745757583.jpg)
+Although all the cars and truck are identified, the pink bounding box and segmantation mask is overlapped for the ISUZU truck, can the score of vehicle.car is even higher. Also, the pedestrian in the right is detected as 2 instances for barly the same bounding box and segmantation. I will implement a function to merge instances result when IoU arrive at certain thread hold.
+
+**CRUW Inference Result**
+Because the CRUW dataset has not been published yet. I can only show some representative result.
+For more result please check [here](https://github.com/TedSongjh/CSE599-fianl-project/tree/main/pix)
+* Successfull Result
+![CRUW_1](/pix/0000000004.jpg)
+In this complex trafic scence, all the instances are identified, even part of the pedestrain is block by the car in front, the bounding box is still accuracy.
+![CRUW_2](/pix/0000000063.jpg)
+This night scence result can show that this model successfully detect objects in low light and high image noise samples. 
 
 
-## Results
+![CRUW_3](/pix/0000001264.jpg)
+This is a result from highway scence, which will be disscuss in the compare with the following failure result.
+
+* Partially Failure Result
+![CRUW_3](/pix/0000001048.jpg)
+For the truck on the left, this model fail to identify object class, bounding box and segmantation. But after few frames, the picture above show the correct result for the truck. 
+
+
+## Quantitative Results
 Because nuScense dataset only have a evaluator for nuScense, I didn't find a proper evaluator for nuImages, so I use built in COCO evaluator in Dectron2 and register the nuImages dataset as COCO format. The bounding box evaluation result can reach a average precision of 50.304%
 
 Evaluation results for bbox: 
@@ -245,7 +279,10 @@ Per-category segm AP:
 | vehicle.car                        | 43.410 | vehicle.bus.bendy               | 21.460 | vehicle.bus.rigid                    | 35.347 |
 | vehicle.truck                      | 8.803  | vehicle.trailer                 | 13.693 |                                      |        |
 
-IoU Evaluation AP and AR:
+
+
+
+Intersection over Union(IoU) Evaluation AP and AR:
 |Evaluation|  IoU   | Range  | MaxDets|Result|
 |:--------:|:------:|:------:|:------:|:------:|
 |Average Precision  (AP)| @IoU=0.50:0.95 | area=   all | maxDets=100 |0.257|
@@ -262,10 +299,9 @@ IoU Evaluation AP and AR:
 |Average Recall     (AR) |IoU=0.50:0.95 | area= large | maxDets=100 |0.661
 
 
-
-
-How did you evaluate your approach? How well did you do? What are you comparing to? Maybe you want ablation studies or comparisons of different methods.
-
-You may want some qualitative results and quantitative results. Example images/text/whatever are good. Charts are also good. Maybe loss curves or AUC charts. Whatever makes sense for your evaluation.
-
 ## Discussion
+Since this is a long term project for both my lab and myself, I will continue to fix the problem above to make our dataset perfect. Here are my idea to fix current defects:
+* For the identify of bicycle and motorcycle, the cyclist on the cycle affect the feature extracting part a lot, which makes the result of cycle not accuracy. Also this is one of the problem that there weren't a lot cycle and cyclist input in both datasets. For this problem, I have two feasible solutions. Fist I will seprately train the cycle with cyclist and the ones without, and concatinate the cycle and cyclist instances by the overlap area and location between two bounding box and segmantation. The other solution is to  use the same idea to concatinate the cycle and cyclist before training, and then train the empty cycle and cycle with cyclist sepratlly.
+* For some failure case when the truck is identify for both car and truck, I will use the bounding box and segmantationv to identify the overlap and use overlap area as weight times the score to give a single result from multiple redundent instances result.
+
+In the end, many thanks to Joseph and all the TAs for all the help this quater, I will keep leaning to make a better progress.
