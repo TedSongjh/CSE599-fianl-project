@@ -38,12 +38,14 @@ CRUW is a public camera-radar dataset for autonomous vehicle applications. It is
 1. CRUW dataset annotation format
 
   My first attribute to this project is to develope a annotation tool kit for our own dataset annotation format. The annotation writer and loader parts of project is done in this summer 2020. The development kit is in this repositories [CRUW devkit](https://github.com/yizhou-wang/cruw-devkit). Also, I made a annotation visualization tool for the inference. This part of the work is in [anno.py](https://github.com/yizhou-wang/cruw-devkit/blob/461d91b695b44bc8d6139942c60d584947e40886/scripts/anno.py) and [anno_loader.py](https://github.com/yizhou-wang/cruw-devkit/blob/master/scripts/anno_loader.py) in cruw devkit.
+  The following picture shows result of the anno_loader tool. This tool can read the config file for different dataset configuration and show both detection result in image and radar domain.
+  ![anno_loader](/pix/IMG_2052.PNG)
 To use cruw devkit:
   
-    Create a new conda environment.
-    ```
-    conda create -n cruw-devkit python=3.6
-    ```
+Create a new conda environment.
+```
+conda create -n cruw-devkit python=3.6
+```
 
 Run setup tool for this devkit.
 ```
@@ -102,7 +104,11 @@ The annotations provided by CRUW dataset include the following:
 ```
 2. Convert nuImages dataset to CRUW dataset format
 
-The nuImages dataset have more attributes than our dataset, and also the nuImages's categories is in detail, which is meaning less for our Camera-Radar Fusion (CRF) annotation(The information extracted from radar can only provide accuracy location and velocity information, the feature of objects are compressed).
+The nuImages dataset have more attributes than our dataset, and also the nuImages's categories is in detail, which is meaning less for our Camera-Radar Fusion (CRF) annotation(The information extracted from radar can only provide accuracy location and velocity information, the feature of objects are compressed).This part of the code can be access from [nuimages.py](https://github.com/TedSongjh/CSE599-fianl-project/blob/main/nuimages.py).
+
+I use the nuScence build in devkit to load nuImages dataset and convert the categories use a mapping function, read all the relational data and transfer the metadata as a dict. For the segmantation part, the orignal segmantation format is a single map with category IDs for each instance, I convert the segmantation to each map per object, which can help me with futher fusion in objects.
+
+And also, in nuImages, the cyclist are not seperated into different kind of pedestrain, but we want to merge the cyclist and the vehicle.cycle, so I read the attribution annotation and the bicycle with rider will be train as different category. After the training, I can relate the human.pedestrian with the vehicle.cycle.withrider by identify the corss part in bounding box and segmantation, and merge these bounding box and segmantation together. Same idea will be implement on vehicle.trailer and vehicle.car. But we don't have enough trailer object to train for now, this part will be added in future.
 
 The categories mapping from nuImages to CRUW is:
 nuImages Category | CRUW Category
@@ -136,9 +142,7 @@ flat.drivable_surface	|	-
 flat.ego	|	-
 
 **Use Custom datasets on Detectron2**
-
-**Train nuImages use Mask R-CNN**
-
+After made the dataset reader, I register the nuimages_test and nuimages_train dataset and metadata in [builtin.py](https://github.com/TedSongjh/CSE599-fianl-project/blob/main/builtin.py). Because the nuImages don't have built in evaluator. I choose to use COCO InstanceSegmentation evaluator in the following part, so I load these two dataset by COCO format. And the instances detail information is in the chart below.
 
 |   category    | #instances   |   category    | #instances   |   category    | #instances   |
 |:-------------:|:-------------|:-------------:|:-------------|:-------------:|:-------------|
@@ -147,19 +151,69 @@ flat.ego	|	-
 |               |              |               |              |               |              |
 |     total     | 8907         |               |              |               |              |
 
+**Train nuImages use Mask R-CNN**
+
+```
+./detectron2/tools/train_net.py   --config-file ../configs/NuImages-RCNN-FPN.yaml   --num-gpus 1 SOLVER.IMS_PER_BATCH 2 SOLVER.BASE_LR 0.0025
+```
+
+To train the dataset on Detectron2 I modify the base mask-RCNN architeture, which use ResNet FPN backbone.
+
+
+The detail of this archetecuture can be found in [NuImages-RCNN-FPN.yaml](https://github.com/TedSongjh/CSE599-fianl-project/blob/main/configs/NuImages-RCNN-FPN.yaml)
+```
+MODEL:
+  META_ARCHITECTURE: "GeneralizedRCNN"
+  BACKBONE:
+    NAME: "build_resnet_fpn_backbone"
+  RESNETS:
+    OUT_FEATURES: ["res2", "res3", "res4", "res5"]
+  FPN:
+    IN_FEATURES: ["res2", "res3", "res4", "res5"]
+  ANCHOR_GENERATOR:
+    SIZES: [[32], [64], [128], [256], [512]]  # One size for each in feature map
+    ASPECT_RATIOS: [[0.5, 1.0, 2.0]]  # Three aspect ratios (same for all in feature maps)
+  RPN:
+    IN_FEATURES: ["p2", "p3", "p4", "p5", "p6"]
+    PRE_NMS_TOPK_TRAIN: 2000  # Per FPN level
+    PRE_NMS_TOPK_TEST: 1000  # Per FPN level
+    POST_NMS_TOPK_TRAIN: 1000
+    POST_NMS_TOPK_TEST: 1000
+  ROI_HEADS:
+    NAME: "StandardROIHeads"
+    IN_FEATURES: ["p2", "p3", "p4", "p5"]
+  ROI_BOX_HEAD:
+    NAME: "FastRCNNConvFCHead"
+    NUM_FC: 2
+    POOLER_RESOLUTION: 7
+  ROI_MASK_HEAD:
+    NAME: "MaskRCNNConvUpsampleHead"
+    NUM_CONV: 4
+    POOLER_RESOLUTION: 14
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  MASK_ON: True
+  RESNETS:
+    DEPTH: 50
+DATASETS:
+  TRAIN: ("nuimages_train",)
+  TEST: ("nuimages_test",)
+SOLVER:
+  IMS_PER_BATCH: 16
+  BASE_LR: 0.02
+  STEPS: (210000, 250000)
+  MAX_ITER: 270000
+INPUT:
+  MIN_SIZE_TRAIN: (640, 672, 704, 736, 768, 800)
+  MASK_FORMAT: "bitmask"
+VERSION: 2
+```
 
 **Use CRUW to make inference**
 
+The inference part of this project can be found in [nuimages_inference.py](https://github.com/TedSongjh/CSE599-fianl-project/blob/main/nuimages_inference.py)
+![anno_loader](/pix/IMG_2052.PNG)
 
 
-How did you decide to solve the problem? What network architecture did you use? What data? Lots of details here about all the things you did. This section describes almost your whole project.
-
-Figures are good here. Maybe you present your network architecture or show some example data points?
-
-
-```
-./train_net.py   --config-file ../configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml   --num-gpus 1 SOLVER.IMS_PER_BATCH 2 SOLVER.BASE_LR 0.0025
-```
 ## Results
 Because nuScense dataset only have a evaluator for nuScense, I didn't find a proper evaluator for nuImages, so I use built in COCO evaluator in Dectron2 and register the nuImages dataset as COCO format. The bounding box evaluation result can reach a average precision of 50.304%
 
