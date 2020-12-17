@@ -287,6 +287,7 @@ Intersection over Union(IoU) Evaluation AP and AR:
 |Average Recall     (AR) |IoU=0.50:0.95 | area=medium | maxDets=100 |0.615|
 |Average Recall     (AR) |IoU=0.50:0.95 | area= large | maxDets=100 |0.661
 
+## [Video Link](https://youtu.be/i5CbRwR9TyQ)
 
 ## Discussion
 Since this is a long term project for both my lab and myself, I will continue to fix the problem above to make our dataset perfect. Here are my idea to fix current defects:
